@@ -1,0 +1,16 @@
+{
+  "domain": "hue_signe_custom",
+  "version": "0.0.1",
+  "name": "Hue Signe Custom",
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/hue_signe_custom",
+  "requirements": ["rgbxy==0.5"],
+  "ssdp": [],
+  "zeroconf": [],
+  "homekit": {},
+  "dependencies": [],
+  "codeowners": [
+    "@jvmiert"
+  ],
+  "iot_class": "local_push"
+}

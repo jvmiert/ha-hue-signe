@@ -1,0 +1,11 @@
+change_gradient:
+  description: Changes the gradient of the lamp
+  fields:
+    color_list:
+      name: Colors
+      description: A list of 5 color values
+      advanced: true
+      example: "[1, 2, 3, 4, 5]"
+      selector:
+        object:
+
