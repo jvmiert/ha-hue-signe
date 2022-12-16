@@ -5,9 +5,6 @@ import logging
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.helpers.typing import ConfigType
 
-from aiohttp import ClientSession, TCPConnector
-from rgbxy import Converter
-from rgbxy import GamutC
 
 # The domain of your component. Should be equal to the name of your component.
 DOMAIN = "hue_signe_custom"
@@ -25,44 +22,23 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     hass.states.async_set(f"{DOMAIN}.{LIST_FIELD}", str(color_list))
 
-    converter = Converter(GamutC)
-    xy_list = []
+    hex_list = []
     for color in color_list:
-      xy_list.append(converter.rgb_to_xy(color[0], color[1], color[2]))
-
-    json_request = {"gradient": { "points": []}}
-
-    xy_list.reverse()
-    for color in xy_list:
-      json_request["gradient"]["points"].append(
-        {"color": {"xy": { "x": color[0], "y": color[1] } } }
-      )
-
-    websession = ClientSession(connector=TCPConnector(verify_ssl=False))
+      hex_list.append('"%02x%02x%02x"' % (int(color[0]), int(color[1]), int(color[2])))
 
     hue_config = hass.data[DOMAIN]
 
-    headers = {
-      "hue-application-key": hue_config['config']['token']
-    }
+    topic = f"zigbee2mqtt/{hue_config['config']['lamp_id']}/set"
+    message = f'{{"gradient":[ {", ".join(hex_list)}]}}'
 
-    try:
-      url = f"https://{hue_config['config']['bridge_ip']}/clip/v2/resource/light/{hue_config['config']['lamp_id']}"
-      async with websession.put(url, json=json_request, headers=headers, timeout=30) as res:
-        res.raise_for_status()
-    finally:
-      await websession.close()
+    await hass.components.mqtt.async_publish(hass, topic, message)
 
   hue_config = config.get("hue_signe_custom")
 
   if hue_config:
-    token = hue_config.get("token")
-    bridge_ip = hue_config.get("ip")
     lamp_id = hue_config.get("lamp_id")
     hass.data[DOMAIN] = {
       'config': {
-        'token': token,
-        'bridge_ip': bridge_ip,
         'lamp_id': lamp_id,
       }
     }
